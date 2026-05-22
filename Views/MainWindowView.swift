@@ -4,6 +4,7 @@ import SwiftUI
 struct MainWindowView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @State private var isSidebarVisible = true
+    @State private var sidebarProgress: CGFloat = 1
     @State private var window: NSWindow?
     private let minimumComfortableWidth: CGFloat = 1_040
     private let sidebarWidth: CGFloat = 220
@@ -16,12 +17,13 @@ struct MainWindowView: View {
     private let toggleButtonInset: CGFloat = 7
     private let titlebarToggleX: CGFloat = 82
     private let titlebarControlTopInset: CGFloat = 12
+    private let sidebarAnimationDuration: TimeInterval = 0.34
 
     var body: some View {
         ZStack(alignment: .topLeading) {
             HStack(spacing: 0) {
                 sidebarPanel
-                    .frame(width: isSidebarVisible ? sidebarColumnWidth : 0, alignment: .leading)
+                    .frame(width: sidebarColumnWidth * sidebarProgress, alignment: .leading)
                     .frame(maxHeight: .infinity, alignment: .leading)
                     .clipped()
 
@@ -35,11 +37,21 @@ struct MainWindowView: View {
             }
 
             sidebarToggleButton
-                .offset(x: sidebarToggleX, y: sidebarToggleY)
+                .modifier(
+                    SidebarTogglePosition(
+                        progress: sidebarProgress,
+                        sidebarColumnWidth: sidebarColumnWidth,
+                        sidebarVisualRightEdge: sidebarInset + sidebarWidth,
+                        dockedX: sidebarInset + sidebarWidth - toggleButtonSize - toggleButtonInset,
+                        dockedY: sidebarTopInset + toggleButtonInset,
+                        titlebarX: titlebarToggleX,
+                        titlebarY: titlebarControlTopInset,
+                        edgeInset: toggleButtonInset
+                    )
+                )
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .ignoresSafeArea(.container, edges: .top)
-        .animation(.smooth(duration: 0.25), value: isSidebarVisible)
         .background(WindowAccessor { window = $0 })
         .frame(minWidth: 860, minHeight: 560)
     }
@@ -48,20 +60,8 @@ struct MainWindowView: View {
         sidebarInset + sidebarWidth + sidebarGap
     }
 
-    private var sidebarToggleX: CGFloat {
-        if isSidebarVisible {
-            sidebarInset + sidebarWidth - toggleButtonSize - toggleButtonInset
-        } else {
-            titlebarToggleX
-        }
-    }
-
-    private var sidebarToggleY: CGFloat {
-        if isSidebarVisible {
-            sidebarTopInset + toggleButtonInset
-        } else {
-            titlebarControlTopInset
-        }
+    private var sidebarAnimation: Animation {
+        .smooth(duration: sidebarAnimationDuration)
     }
 
     private var sidebarPanel: some View {
@@ -116,16 +116,28 @@ struct MainWindowView: View {
 
     private func toggleSidebar() {
         if isSidebarVisible {
-            withAnimation(.smooth(duration: 0.25)) {
-                isSidebarVisible = false
-            }
+            closeSidebar()
             return
         }
 
         resizeWindowLeftForSidebarIfNeeded {
-            withAnimation(.smooth(duration: 0.25)) {
-                isSidebarVisible = true
-            }
+            openSidebar()
+        }
+    }
+
+    private func openSidebar() {
+        isSidebarVisible = true
+
+        withAnimation(sidebarAnimation) {
+            sidebarProgress = 1
+        }
+    }
+
+    private func closeSidebar() {
+        isSidebarVisible = false
+
+        withAnimation(sidebarAnimation) {
+            sidebarProgress = 0
         }
     }
 
@@ -243,5 +255,43 @@ private struct WindowAccessor: NSViewRepresentable {
                 )
             )
         }
+    }
+}
+
+private struct SidebarTogglePosition: AnimatableModifier {
+    var progress: CGFloat
+    let sidebarColumnWidth: CGFloat
+    let sidebarVisualRightEdge: CGFloat
+    let dockedX: CGFloat
+    let dockedY: CGFloat
+    let titlebarX: CGFloat
+    let titlebarY: CGFloat
+    let edgeInset: CGFloat
+
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        content.offset(x: xOffset, y: yOffset)
+    }
+
+    private var xOffset: CGFloat {
+        let visibleRightEdge = min(sidebarVisualRightEdge, sidebarColumnWidth * progress)
+        let edgeAttachedX = visibleRightEdge - edgeInset
+        return min(dockedX, max(titlebarX, edgeAttachedX))
+    }
+
+    private var yOffset: CGFloat {
+        titlebarY + (dockedY - titlebarY) * dockProgress
+    }
+
+    private var dockProgress: CGFloat {
+        guard dockedX != titlebarX else {
+            return 1
+        }
+
+        return min(max((xOffset - titlebarX) / (dockedX - titlebarX), 0), 1)
     }
 }
