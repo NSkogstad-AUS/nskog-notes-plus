@@ -11,7 +11,8 @@ struct MainWindowView: View {
             SidebarView(folders: appViewModel.folders)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 280)
         } content: {
-            
+            NotesListView(viewModel: appViewModel.notesViewModel)
+                .navigationSplitViewColumnWidth(min: 260, ideal: 320, max: 420)
         } detail: {
             if let selectedNote = appViewModel.notesViewModel.selectedNote {
                 EditorView(note: selectedNote)
@@ -25,11 +26,14 @@ struct MainWindowView: View {
         .onChange(of: columnVisibility) { _, visibility in
             expandWindowLeftForSidebarIfNeeded(visibility)
         }
+        .onAppear {
+            expandWindowLeftForSidebarIfNeeded(columnVisibility)
+        }
         .frame(minWidth: 860, minHeight: 560)
     }
 
     private func expandWindowLeftForSidebarIfNeeded(_ visibility: NavigationSplitViewVisibility) {
-        guard visibility == .all, let window else {
+        guard shouldMakeRoomForSidebar(visibility), let window else {
             return
         }
 
@@ -57,6 +61,10 @@ struct MainWindowView: View {
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             window.animator().setFrame(targetFrame, display: true)
         }
+    }
+
+    private func shouldMakeRoomForSidebar(_ visibility: NavigationSplitViewVisibility) -> Bool {
+        visibility == .all || visibility == .automatic
     }
 }
 
