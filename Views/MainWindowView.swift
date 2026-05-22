@@ -123,6 +123,8 @@ struct MainWindowView: View {
 private struct WindowAccessor: NSViewRepresentable {
     let onResolve: (NSWindow) -> Void
     private let minimumWindowSize = NSSize(width: 860, height: 560)
+    private let trafficLightXOffset: CGFloat = 10
+    private let trafficLightYOffset: CGFloat = 10
     private static var trafficLightBaseFrames: [ObjectIdentifier: [String: CGRect]] = [:]
 
     func makeNSView(context: Context) -> NSView {
@@ -183,8 +185,7 @@ private struct WindowAccessor: NSViewRepresentable {
             return
         }
 
-        let xOffset: CGFloat = 5
-        let yOffset: CGFloat = buttons.first?.1.superview?.isFlipped == true ? 4 : -4
+        let yOffset = buttons.first?.1.superview?.isFlipped == true ? trafficLightYOffset : -trafficLightYOffset
 
         for (key, button) in buttons {
             guard let baseFrame = baseFrames[key] else {
@@ -193,7 +194,7 @@ private struct WindowAccessor: NSViewRepresentable {
 
             button.setFrameOrigin(
                 CGPoint(
-                    x: baseFrame.origin.x + xOffset,
+                    x: baseFrame.origin.x + trafficLightXOffset,
                     y: baseFrame.origin.y + yOffset
                 )
             )
