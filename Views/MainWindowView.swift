@@ -11,10 +11,10 @@ struct MainWindowView: View {
     private let sidebarGap: CGFloat = 8
     private let sidebarCornerRadius: CGFloat = 12
     private let sidebarTitlebarHeight: CGFloat = 44
-    private let toggleButtonSize: CGFloat = 28
-    private let toggleButtonInset: CGFloat = 7
-    private let titlebarToggleX: CGFloat = 95
-    private let titlebarControlTopInset: CGFloat = 12
+    private let toggleButtonSize: CGFloat = 38
+    private let toggleButtonInset: CGFloat = 6
+    private let titlebarToggleX: CGFloat = 96
+    private let titlebarControlTopInset: CGFloat = 7
     private let sidebarAnimationDuration: TimeInterval = 0.25
 
     var body: some View {
@@ -53,6 +53,26 @@ struct MainWindowView: View {
         .linear(duration: sidebarAnimationDuration)
     }
 
+    private var toggleButtonCornerRadius: CGFloat {
+        isSidebarVisible ? 10 : toggleButtonSize / 2
+    }
+
+    private var toggleButtonFillColor: Color {
+        isSidebarVisible ? Color(nsColor: .controlColor).opacity(0.72) : Color(nsColor: .controlBackgroundColor)
+    }
+
+    private var toggleButtonPrimaryShadowOpacity: Double {
+        isSidebarVisible ? 0.08 : 0.10
+    }
+
+    private var toggleButtonPrimaryShadowRadius: CGFloat {
+        isSidebarVisible ? 8 : 14
+    }
+
+    private var toggleButtonPrimaryShadowY: CGFloat {
+        isSidebarVisible ? 2 : 4
+    }
+
     private var sidebarPanel: some View {
         VStack(spacing: 0) {
             Color.clear
@@ -79,16 +99,21 @@ struct MainWindowView: View {
             toggleSidebar()
         } label: {
             Image(systemName: "sidebar.left")
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 16, weight: .regular))
                 .frame(width: toggleButtonSize, height: toggleButtonSize)
-                .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: toggleButtonCornerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .background {
+            RoundedRectangle(cornerRadius: toggleButtonCornerRadius, style: .continuous)
+                .fill(toggleButtonFillColor)
+                .shadow(color: .black.opacity(toggleButtonPrimaryShadowOpacity), radius: toggleButtonPrimaryShadowRadius, x: 0, y: toggleButtonPrimaryShadowY)
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
+        }
         .overlay {
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .stroke(.quaternary, lineWidth: 1)
+            RoundedRectangle(cornerRadius: toggleButtonCornerRadius, style: .continuous)
+                .stroke(.white.opacity(0.45), lineWidth: 1)
         }
         .help("Toggle Sidebar")
         .accessibilityLabel("Toggle Sidebar")
