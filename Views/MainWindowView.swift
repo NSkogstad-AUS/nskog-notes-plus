@@ -5,8 +5,6 @@ struct MainWindowView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @State private var isSidebarVisible = true
     @State private var sidebarProgress: CGFloat = 1
-    @State private var window: NSWindow?
-    private let minimumComfortableWidth: CGFloat = 1_040
     private let sidebarWidth: CGFloat = 220
     private let sidebarInset: CGFloat = 8
     private let sidebarTopInset: CGFloat = 6
@@ -15,26 +13,16 @@ struct MainWindowView: View {
     private let sidebarTitlebarHeight: CGFloat = 44
     private let toggleButtonSize: CGFloat = 28
     private let toggleButtonInset: CGFloat = 7
-    private let titlebarToggleX: CGFloat = 82
+    private let titlebarToggleX: CGFloat = 95
     private let titlebarControlTopInset: CGFloat = 12
-    private let sidebarAnimationDuration: TimeInterval = 0.34
+    private let sidebarAnimationDuration: TimeInterval = 0.25
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            HStack(spacing: 0) {
-                sidebarPanel
-                    .frame(width: sidebarColumnWidth * sidebarProgress, alignment: .leading)
-                    .frame(maxHeight: .infinity, alignment: .leading)
-                    .clipped()
-
-                NotesListView(viewModel: appViewModel.notesViewModel)
-                    .frame(minWidth: 260, idealWidth: 320, maxWidth: 420, maxHeight: .infinity)
-
-                Divider()
-
-                detailView
-                    .frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
-            }
+            sidebarPanel
+                .frame(width: sidebarColumnWidth, alignment: .leading)
+                .frame(maxHeight: .infinity, alignment: .leading)
+                .offset(x: -sidebarColumnWidth * (1 - sidebarProgress))
 
             sidebarToggleButton
                 .modifier(
@@ -50,9 +38,10 @@ struct MainWindowView: View {
                     )
                 )
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Color(nsColor: .windowBackgroundColor))
         .ignoresSafeArea(.container, edges: .top)
-        .background(WindowAccessor { window = $0 })
+        .background(WindowAccessor { _ in })
         .frame(minWidth: 860, minHeight: 560)
     }
 
@@ -61,7 +50,7 @@ struct MainWindowView: View {
     }
 
     private var sidebarAnimation: Animation {
-        .smooth(duration: sidebarAnimationDuration)
+        .linear(duration: sidebarAnimationDuration)
     }
 
     private var sidebarPanel: some View {
@@ -92,7 +81,7 @@ struct MainWindowView: View {
             Image(systemName: "sidebar.left")
                 .font(.system(size: 14, weight: .medium))
                 .frame(width: toggleButtonSize, height: toggleButtonSize)
-                .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
         .foregroundStyle(.primary)
@@ -105,24 +94,13 @@ struct MainWindowView: View {
         .accessibilityLabel("Toggle Sidebar")
     }
 
-    @ViewBuilder
-    private var detailView: some View {
-        if let selectedNote = appViewModel.notesViewModel.selectedNote {
-            EditorView(note: selectedNote)
-        } else {
-            EmptyStateView()
-        }
-    }
-
     private func toggleSidebar() {
         if isSidebarVisible {
             closeSidebar()
             return
         }
 
-        resizeWindowLeftForSidebarIfNeeded {
-            openSidebar()
-        }
+        openSidebar()
     }
 
     private func openSidebar() {
@@ -138,41 +116,6 @@ struct MainWindowView: View {
 
         withAnimation(sidebarAnimation) {
             sidebarProgress = 0
-        }
-    }
-
-    private func resizeWindowLeftForSidebarIfNeeded(completion: @escaping () -> Void) {
-        guard let window else {
-            completion()
-            return
-        }
-
-        let frame = window.frame
-
-        guard frame.width < minimumComfortableWidth else {
-            completion()
-            return
-        }
-
-        let visibleFrame = window.screen?.visibleFrame ?? frame
-        let rightEdge = frame.maxX
-        let targetWidth = min(minimumComfortableWidth, rightEdge - visibleFrame.minX)
-
-        guard targetWidth > frame.width else {
-            completion()
-            return
-        }
-
-        var targetFrame = frame
-        targetFrame.size.width = targetWidth
-        targetFrame.origin.x = rightEdge - targetWidth
-
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            window.animator().setFrame(targetFrame, display: true)
-        } completionHandler: {
-            completion()
         }
     }
 }
@@ -278,7 +221,7 @@ private struct SidebarTogglePosition: AnimatableModifier {
     }
 
     private var xOffset: CGFloat {
-        let visibleRightEdge = min(sidebarVisualRightEdge, sidebarColumnWidth * progress)
+        let visibleRightEdge = sidebarVisualRightEdge - sidebarColumnWidth * (1 - progress)
         let edgeAttachedX = visibleRightEdge - edgeInset
         return min(dockedX, max(titlebarX, edgeAttachedX))
     }
