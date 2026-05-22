@@ -11,5 +11,8 @@ struct NskogNotesPlusApp: App {
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
+        .commands {
+            CommandGroup(replacing: .sidebar) { }
+        }
     }
 }

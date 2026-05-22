@@ -17,6 +17,7 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
         .navigationTitle("Notes")
     }
 }
