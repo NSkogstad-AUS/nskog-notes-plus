@@ -8,12 +8,14 @@ struct MainWindowView: View {
     private let minimumComfortableWidth: CGFloat = 1_040
     private let sidebarWidth: CGFloat = 220
     private let sidebarInset: CGFloat = 8
+    private let sidebarTopInset: CGFloat = 6
     private let sidebarGap: CGFloat = 8
     private let sidebarCornerRadius: CGFloat = 12
     private let sidebarTitlebarHeight: CGFloat = 44
     private let toggleButtonSize: CGFloat = 28
     private let toggleButtonInset: CGFloat = 7
-    private let toggleButtonTopInset: CGFloat = 10
+    private let titlebarToggleX: CGFloat = 82
+    private let titlebarControlTopInset: CGFloat = 12
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -33,7 +35,7 @@ struct MainWindowView: View {
             }
 
             sidebarToggleButton
-                .offset(x: sidebarToggleX, y: toggleButtonTopInset)
+                .offset(x: sidebarToggleX, y: sidebarToggleY)
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .ignoresSafeArea(.container, edges: .top)
@@ -50,7 +52,15 @@ struct MainWindowView: View {
         if isSidebarVisible {
             sidebarInset + sidebarWidth - toggleButtonSize - toggleButtonInset
         } else {
-            sidebarInset
+            titlebarToggleX
+        }
+    }
+
+    private var sidebarToggleY: CGFloat {
+        if isSidebarVisible {
+            sidebarTopInset + toggleButtonInset
+        } else {
+            titlebarControlTopInset
         }
     }
 
@@ -70,6 +80,7 @@ struct MainWindowView: View {
                     .stroke(.quaternary, lineWidth: 1)
             }
             .padding(.leading, sidebarInset)
+            .padding(.top, sidebarTopInset)
             .padding(.bottom, sidebarInset)
             .padding(.trailing, sidebarGap)
     }
@@ -157,6 +168,7 @@ struct MainWindowView: View {
 private struct WindowAccessor: NSViewRepresentable {
     let onResolve: (NSWindow) -> Void
     private let minimumWindowSize = NSSize(width: 860, height: 560)
+    private static var trafficLightBaseFrames: [ObjectIdentifier: [String: CGRect]] = [:]
 
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
@@ -185,5 +197,51 @@ private struct WindowAccessor: NSViewRepresentable {
         window.titlebarAppearsTransparent = true
         window.styleMask.insert(.fullSizeContentView)
         window.isMovableByWindowBackground = true
+        moveTrafficLights(in: window)
+    }
+
+    private func moveTrafficLights(in window: NSWindow) {
+        let buttonTypes: [(String, NSWindow.ButtonType)] = [
+            ("close", .closeButton),
+            ("miniaturize", .miniaturizeButton),
+            ("zoom", .zoomButton)
+        ]
+        let buttons = buttonTypes.compactMap { key, type in
+            window.standardWindowButton(type).map { (key, $0) }
+        }
+
+        guard buttons.count == buttonTypes.count else {
+            return
+        }
+
+        let windowID = ObjectIdentifier(window)
+
+        if Self.trafficLightBaseFrames[windowID] == nil {
+            Self.trafficLightBaseFrames[windowID] = Dictionary(
+                uniqueKeysWithValues: buttons.map { key, button in
+                    (key, button.frame)
+                }
+            )
+        }
+
+        guard let baseFrames = Self.trafficLightBaseFrames[windowID] else {
+            return
+        }
+
+        let xOffset: CGFloat = 5
+        let yOffset: CGFloat = buttons.first?.1.superview?.isFlipped == true ? 4 : -4
+
+        for (key, button) in buttons {
+            guard let baseFrame = baseFrames[key] else {
+                continue
+            }
+
+            button.setFrameOrigin(
+                CGPoint(
+                    x: baseFrame.origin.x + xOffset,
+                    y: baseFrame.origin.y + yOffset
+                )
+            )
+        }
     }
 }
