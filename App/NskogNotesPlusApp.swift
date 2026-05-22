@@ -9,8 +9,7 @@ struct NskogNotesPlusApp: App {
             MainWindowView()
                 .environmentObject(appViewModel)
         }
-        .windowStyle(.titleBar)
-        .windowToolbarStyle(.unified)
+        .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(replacing: .sidebar) { }
         }

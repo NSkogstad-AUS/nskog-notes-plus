@@ -10,8 +10,10 @@ struct MainWindowView: View {
     private let sidebarInset: CGFloat = 8
     private let sidebarGap: CGFloat = 8
     private let sidebarCornerRadius: CGFloat = 12
+    private let sidebarTitlebarHeight: CGFloat = 44
     private let toggleButtonSize: CGFloat = 28
     private let toggleButtonInset: CGFloat = 7
+    private let toggleButtonTopInset: CGFloat = 10
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -31,9 +33,10 @@ struct MainWindowView: View {
             }
 
             sidebarToggleButton
-                .offset(x: sidebarToggleX, y: sidebarInset + toggleButtonInset)
+                .offset(x: sidebarToggleX, y: toggleButtonTopInset)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .ignoresSafeArea(.container, edges: .top)
         .animation(.smooth(duration: 0.25), value: isSidebarVisible)
         .background(WindowAccessor { window = $0 })
         .frame(minWidth: 860, minHeight: 560)
@@ -52,7 +55,12 @@ struct MainWindowView: View {
     }
 
     private var sidebarPanel: some View {
-        SidebarView(folders: appViewModel.folders)
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(height: sidebarTitlebarHeight)
+
+            SidebarView(folders: appViewModel.folders)
+        }
             .frame(width: sidebarWidth)
             .frame(maxHeight: .infinity)
             .background(.bar, in: RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
@@ -62,7 +70,7 @@ struct MainWindowView: View {
                     .stroke(.quaternary, lineWidth: 1)
             }
             .padding(.leading, sidebarInset)
-            .padding(.vertical, sidebarInset)
+            .padding(.bottom, sidebarInset)
             .padding(.trailing, sidebarGap)
     }
 
@@ -154,6 +162,7 @@ private struct WindowAccessor: NSViewRepresentable {
         let view = NSView()
         DispatchQueue.main.async {
             if let window = view.window {
+                configure(window)
                 window.minSize = minimumWindowSize
                 onResolve(window)
             }
@@ -164,9 +173,17 @@ private struct WindowAccessor: NSViewRepresentable {
     func updateNSView(_ nsView: NSView, context: Context) {
         DispatchQueue.main.async {
             if let window = nsView.window {
+                configure(window)
                 window.minSize = minimumWindowSize
                 onResolve(window)
             }
         }
+    }
+
+    private func configure(_ window: NSWindow) {
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
+        window.isMovableByWindowBackground = true
     }
 }
