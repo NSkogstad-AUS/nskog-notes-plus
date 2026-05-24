@@ -98,9 +98,11 @@ struct MainWindowView: View {
             .frame(maxHeight: .infinity)
             .background(.bar, in: RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
             .clipShape(RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
             .overlay {
                 RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous)
-                    .stroke(.quaternary, lineWidth: 1)
+                    .stroke(.white.opacity(0.55), lineWidth: 1)
             }
             .padding(.leading, sidebarInset)
             .padding(.top, sidebarTopInset)
