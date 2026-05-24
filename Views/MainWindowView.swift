@@ -28,6 +28,9 @@ struct MainWindowView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
+            notesOverview
+                .padding(.leading, sidebarColumnWidth * sidebarProgress)
+
             sidebarPanel
                 .frame(width: sidebarColumnWidth, alignment: .leading)
                 .frame(maxHeight: .infinity, alignment: .leading)
@@ -117,6 +120,11 @@ struct MainWindowView: View {
             .padding(.top, sidebarTopInset)
             .padding(.bottom, sidebarInset)
             .padding(.trailing, sidebarGap)
+    }
+
+    private var notesOverview: some View {
+        NotesListView(viewModel: appViewModel.notesViewModel)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var sidebarToggleButton: some View {

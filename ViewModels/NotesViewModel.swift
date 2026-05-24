@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 final class NotesViewModel: ObservableObject {
@@ -38,5 +39,35 @@ final class NotesViewModel: ObservableObject {
 
         notes.insert(note, at: 0)
         selectedNoteID = note.id
+    }
+
+    func duplicate(_ note: Note) {
+        let duplicate = Note(
+            id: UUID(),
+            title: "\(note.title) Copy",
+            body: note.body,
+            lastEdited: Date(),
+            folderID: note.folderID
+        )
+
+        let insertionIndex = notes.firstIndex { $0.id == note.id }.map { $0 + 1 } ?? 0
+        notes.insert(duplicate, at: insertionIndex)
+        selectedNoteID = duplicate.id
+    }
+
+    func delete(_ note: Note) {
+        notes.removeAll { $0.id == note.id }
+
+        if selectedNoteID == note.id {
+            selectedNoteID = notes.first?.id
+        }
+    }
+
+    func share(_ note: Note) {
+        #if os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString("\(note.title)\n\n\(note.body)", forType: .string)
+        #endif
     }
 }

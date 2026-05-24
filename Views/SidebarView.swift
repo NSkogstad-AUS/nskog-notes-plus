@@ -92,22 +92,25 @@ private struct SettingsView: View {
             .padding(.leading, 16)
             .frame(height: settingsSidebarTitlebarHeight, alignment: .topLeading)
 
-            ForEach(SettingsSection.allCases) { section in
+            ForEach(SettingsSection.visibleSections) { section in
                 Button {
-                    selectedSection = section
+                    if section.isEnabled {
+                        selectedSection = section
+                    }
                 } label: {
                     Label(section.title, systemImage: section.systemImage)
-                        .font(.system(size: 12, weight: selectedSection == section ? .semibold : .regular))
-                        .foregroundStyle(selectedSection == section ? .white : .primary)
+                        .font(.system(size: 12, weight: selectedSection == section && section.isEnabled ? .semibold : .regular))
+                        .foregroundStyle(settingsSectionForeground(section))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(selectedSection == section ? Color(red: 0.82, green: 0.12, blue: 0.18) : Color.clear)
+                                .fill(selectedSection == section && section.isEnabled ? Color(red: 0.82, green: 0.12, blue: 0.18) : Color.clear)
                         }
                 }
                 .buttonStyle(.plain)
+                .disabled(!section.isEnabled)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 1)
             }
@@ -127,6 +130,14 @@ private struct SettingsView: View {
         .padding(.leading, settingsSidebarInset)
         .padding(.top, settingsSidebarInset)
         .padding(.bottom, settingsSidebarInset)
+    }
+
+    private func settingsSectionForeground(_ section: SettingsSection) -> Color {
+        if !section.isEnabled {
+            return .secondary.opacity(0.55)
+        }
+
+        return selectedSection == section ? .white : .primary
     }
 
     private var settingsDetail: some View {
@@ -258,52 +269,53 @@ private struct SettingsRow: View {
 
 private enum SettingsSection: String, CaseIterable, Identifiable {
     case general
-    case accounts
-    case intelligence
-    case behavior
     case appearance
-    case editing
     case shortcuts
     case storage
+    case extensions
 
     var id: String { rawValue }
+
+    static var visibleSections: [SettingsSection] {
+        [.general, .appearance, .shortcuts, .storage, .extensions]
+    }
+
+    var isEnabled: Bool {
+        switch self {
+        case .general, .appearance:
+            return true
+        case .shortcuts, .storage, .extensions:
+            return false
+        }
+    }
 
     var title: String {
         switch self {
         case .general: "General"
-        case .accounts: "Accounts"
-        case .intelligence: "Intelligence"
-        case .behavior: "Behavior"
         case .appearance: "Appearance"
-        case .editing: "Editing"
         case .shortcuts: "Shortcuts"
         case .storage: "Storage"
+        case .extensions: "Extensions"
         }
     }
 
     var systemImage: String {
         switch self {
         case .general: "gearshape"
-        case .accounts: "person.crop.circle"
-        case .intelligence: "sparkles"
-        case .behavior: "slider.horizontal.3"
         case .appearance: "paintbrush"
-        case .editing: "square.and.pencil"
         case .shortcuts: "keyboard"
         case .storage: "externaldrive"
+        case .extensions: "puzzlepiece.extension"
         }
     }
 
     var tint: Color {
         switch self {
         case .general: .gray
-        case .accounts: .blue
-        case .intelligence: .red
-        case .behavior: .orange
         case .appearance: .purple
-        case .editing: .green
         case .shortcuts: .indigo
         case .storage: .teal
+        case .extensions: .orange
         }
     }
 
@@ -314,26 +326,20 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
     var heroDescription: String {
         switch self {
         case .general: "Control startup behavior, default folders, and app-wide preferences."
-        case .accounts: "Manage connected accounts and sync preferences for your notes."
-        case .intelligence: "Configure note assistance, summaries, and writing suggestions."
-        case .behavior: "Adjust how notes open, select, sort, and respond to actions."
         case .appearance: "Customize theme, sidebar density, and editor presentation."
-        case .editing: "Set writing defaults, text behavior, and editor preferences."
         case .shortcuts: "Review keyboard shortcuts and quick actions."
         case .storage: "Manage local storage, exports, backups, and note locations."
+        case .extensions: "Manage future integrations and extension points."
         }
     }
 
     var groupTitle: String {
         switch self {
         case .general: "Application"
-        case .accounts: "Accounts"
-        case .intelligence: "Agents"
-        case .behavior: "Navigation"
         case .appearance: "Theme"
-        case .editing: "Editor"
         case .shortcuts: "Keyboard"
         case .storage: "Locations"
+        case .extensions: "Extensions"
         }
     }
 
@@ -361,59 +367,46 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
     private var primaryRowTitle: String {
         switch self {
         case .general: "Launch at Login"
-        case .accounts: "iCloud Account"
-        case .intelligence: "Writing Assistant"
-        case .behavior: "Default Note Selection"
         case .appearance: "System Appearance"
-        case .editing: "Plain Text Editing"
         case .shortcuts: "Global Shortcuts"
         case .storage: "Local Notes"
+        case .extensions: "Installed Extensions"
         }
     }
 
     private var primaryRowSubtitle: String {
         switch self {
         case .general: "Open Notes Plus automatically when you sign in."
-        case .accounts: "Connect an account for future sync features."
-        case .intelligence: "Enable contextual help for note drafts and summaries."
-        case .behavior: "Choose what appears when the app opens."
         case .appearance: "Follow macOS or choose a fixed app appearance."
-        case .editing: "Keep note editing fast, local, and simple."
         case .shortcuts: "Set shortcuts for creating and finding notes."
         case .storage: "Store notes locally on this Mac."
+        case .extensions: "Add integrations when extension support is available."
         }
     }
 
     private var primaryActionTitle: String? {
         switch self {
-        case .accounts, .intelligence: "Get"
-        default: nil
+        case .general, .appearance, .shortcuts, .storage, .extensions: nil
         }
     }
 
     private var secondaryRowTitle: String {
         switch self {
         case .general: "Default Folder"
-        case .accounts: "Account Privacy"
-        case .intelligence: "Model Preferences"
-        case .behavior: "List Sorting"
         case .appearance: "Sidebar Density"
-        case .editing: "Markdown"
         case .shortcuts: "Quick Actions"
         case .storage: "Backups"
+        case .extensions: "Extension Permissions"
         }
     }
 
     private var secondaryRowSubtitle: String {
         switch self {
         case .general: "Choose where new notes are created."
-        case .accounts: "Review account data and connection settings."
-        case .intelligence: "Choose how assistance is shown in notes."
-        case .behavior: "Sort notes by edit date, title, or folder."
         case .appearance: "Adjust spacing and row height in the sidebar."
-        case .editing: "Enable lightweight Markdown conveniences."
         case .shortcuts: "Customize quick note commands."
         case .storage: "Configure automatic local backup behavior."
+        case .extensions: "Control extension access to app features."
         }
     }
 }
