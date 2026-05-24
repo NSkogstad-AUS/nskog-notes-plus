@@ -43,6 +43,7 @@ struct SidebarView: View {
 private struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedSection: SettingsSection = .general
+    @State private var isCloseHovered = false
     private let settingsSidebarWidth: CGFloat = 188
     private let settingsSidebarCornerRadius: CGFloat = 12
     private let settingsSidebarInset: CGFloat = 8
@@ -64,11 +65,19 @@ private struct SettingsView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Circle()
-                        .fill(Color(red: 1.0, green: 0.31, blue: 0.27))
-                        .frame(width: 13, height: 13)
+                    ZStack {
+                        Circle()
+                            .fill(Color(red: 1.0, green: 0.31, blue: 0.27))
+
+                        Image(systemName: "xmark")
+                            .font(.system(size: 6, weight: .bold))
+                            .foregroundStyle(Color(red: 0.45, green: 0.06, blue: 0.04))
+                            .opacity(isCloseHovered ? 1 : 0)
+                    }
+                    .frame(width: 13, height: 13)
                 }
                 .buttonStyle(.plain)
+                .onHover { isCloseHovered = $0 }
                 .accessibilityLabel("Close Settings")
 
                 Circle()
