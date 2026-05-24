@@ -30,6 +30,7 @@ struct MainWindowView: View {
                         progress: sidebarProgress,
                         sidebarColumnWidth: sidebarColumnWidth,
                         sidebarVisualRightEdge: sidebarInset + sidebarWidth,
+                        buttonSize: toggleButtonSize,
                         dockedX: sidebarInset + sidebarWidth - toggleButtonSize - toggleButtonInset,
                         dockedY: sidebarTopInset + toggleButtonInset,
                         titlebarX: titlebarToggleX,
@@ -231,6 +232,7 @@ private struct SidebarTogglePosition: AnimatableModifier {
     var progress: CGFloat
     let sidebarColumnWidth: CGFloat
     let sidebarVisualRightEdge: CGFloat
+    let buttonSize: CGFloat
     let dockedX: CGFloat
     let dockedY: CGFloat
     let titlebarX: CGFloat
@@ -248,19 +250,11 @@ private struct SidebarTogglePosition: AnimatableModifier {
 
     private var xOffset: CGFloat {
         let visibleRightEdge = sidebarVisualRightEdge - sidebarColumnWidth * (1 - progress)
-        let edgeAttachedX = visibleRightEdge - edgeInset
+        let edgeAttachedX = visibleRightEdge - buttonSize - edgeInset
         return min(dockedX, max(titlebarX, edgeAttachedX))
     }
 
     private var yOffset: CGFloat {
-        titlebarY + (dockedY - titlebarY) * dockProgress
-    }
-
-    private var dockProgress: CGFloat {
-        guard dockedX != titlebarX else {
-            return 1
-        }
-
-        return min(max((xOffset - titlebarX) / (dockedX - titlebarX), 0), 1)
+        dockedY
     }
 }
