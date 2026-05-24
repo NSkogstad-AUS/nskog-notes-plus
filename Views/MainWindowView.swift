@@ -5,6 +5,7 @@ struct MainWindowView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
     @State private var isSidebarVisible = true
     @State private var sidebarProgress: CGFloat = 1
+    @State private var areTrafficLightsHovered = false
     private let sidebarWidth: CGFloat = 220
     private let sidebarInset: CGFloat = 8
     private let sidebarTopInset: CGFloat = 6
@@ -19,6 +20,10 @@ struct MainWindowView: View {
     private let titlebarActionHeight: CGFloat = 36
     private let titlebarActionWidth: CGFloat = 70
     private let titlebarSearchWidth: CGFloat = 328
+    private let trafficLightSize: CGFloat = 13
+    private let trafficLightGap: CGFloat = 8
+    private let trafficLightLeading: CGFloat = 20
+    private let trafficLightTop: CGFloat = 20
     private let sidebarAnimationDuration: TimeInterval = 0.25
 
     var body: some View {
@@ -27,6 +32,10 @@ struct MainWindowView: View {
                 .frame(width: sidebarColumnWidth, alignment: .leading)
                 .frame(maxHeight: .infinity, alignment: .leading)
                 .offset(x: -sidebarColumnWidth * (1 - sidebarProgress))
+
+            trafficLights
+                .padding(.leading, trafficLightLeading)
+                .padding(.top, trafficLightTop)
 
             sidebarToggleButton
                 .modifier(
@@ -96,13 +105,13 @@ struct MainWindowView: View {
         }
             .frame(width: sidebarWidth)
             .frame(maxHeight: .infinity)
-            .background(.bar, in: RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
+            .background(Color(red: 0.976, green: 0.976, blue: 0.976), in: RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
             .clipShape(RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
             .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
             .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
             .overlay {
                 RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous)
-                    .stroke(.white.opacity(0.55), lineWidth: 1)
+                    .stroke(Color.white, lineWidth: 2)
             }
             .padding(.leading, sidebarInset)
             .padding(.top, sidebarTopInset)
@@ -133,6 +142,42 @@ struct MainWindowView: View {
         }
         .help("Toggle Sidebar")
         .accessibilityLabel("Toggle Sidebar")
+    }
+
+    private var trafficLights: some View {
+        HStack(spacing: trafficLightGap) {
+            TrafficLightButton(
+                color: Color(red: 1.0, green: 0.31, blue: 0.27),
+                symbolName: "xmark",
+                symbolColor: Color(red: 0.45, green: 0.06, blue: 0.04),
+                isHovered: areTrafficLightsHovered,
+                accessibilityLabel: "Close"
+            ) {
+                NSApplication.shared.keyWindow?.performClose(nil)
+            }
+
+            TrafficLightButton(
+                color: Color(red: 1.0, green: 0.74, blue: 0.12),
+                symbolName: "minus",
+                symbolColor: Color(red: 0.52, green: 0.33, blue: 0.02),
+                isHovered: areTrafficLightsHovered,
+                accessibilityLabel: "Minimize"
+            ) {
+                NSApplication.shared.keyWindow?.miniaturize(nil)
+            }
+
+            TrafficLightButton(
+                color: Color(red: 0.20, green: 0.78, blue: 0.35),
+                symbolName: "arrow.up.left.and.arrow.down.right",
+                symbolColor: Color(red: 0.04, green: 0.36, blue: 0.12),
+                isHovered: areTrafficLightsHovered,
+                accessibilityLabel: "Zoom"
+            ) {
+                NSApplication.shared.keyWindow?.zoom(nil)
+            }
+        }
+        .contentShape(Rectangle())
+        .onHover { areTrafficLightsHovered = $0 }
     }
 
     private var titlebarActions: some View {
@@ -260,51 +305,41 @@ private struct WindowAccessor: NSViewRepresentable {
         window.titlebarAppearsTransparent = true
         window.styleMask.insert(.fullSizeContentView)
         window.isMovableByWindowBackground = true
-        moveTrafficLights(in: window)
+        hideNativeTrafficLights(in: window)
     }
 
-    private func moveTrafficLights(in window: NSWindow) {
-        let buttonTypes: [(String, NSWindow.ButtonType)] = [
-            ("close", .closeButton),
-            ("miniaturize", .miniaturizeButton),
-            ("zoom", .zoomButton)
-        ]
-        let buttons = buttonTypes.compactMap { key, type in
-            window.standardWindowButton(type).map { (key, $0) }
+    private func hideNativeTrafficLights(in window: NSWindow) {
+        let buttonTypes: [NSWindow.ButtonType] = [.closeButton, .miniaturizeButton, .zoomButton]
+
+        for buttonType in buttonTypes {
+            window.standardWindowButton(buttonType)?.isHidden = true
         }
+    }
+}
 
-        guard buttons.count == buttonTypes.count else {
-            return
-        }
+private struct TrafficLightButton: View {
+    let color: Color
+    let symbolName: String
+    let symbolColor: Color
+    let isHovered: Bool
+    let accessibilityLabel: String
+    let action: () -> Void
 
-        let windowID = ObjectIdentifier(window)
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(color)
 
-        if Self.trafficLightBaseFrames[windowID] == nil {
-            Self.trafficLightBaseFrames[windowID] = Dictionary(
-                uniqueKeysWithValues: buttons.map { key, button in
-                    (key, button.frame)
-                }
-            )
-        }
-
-        guard let baseFrames = Self.trafficLightBaseFrames[windowID] else {
-            return
-        }
-
-        let yOffset = buttons.first?.1.superview?.isFlipped == true ? trafficLightYOffset : -trafficLightYOffset
-
-        for (key, button) in buttons {
-            guard let baseFrame = baseFrames[key] else {
-                continue
+                Image(systemName: symbolName)
+                    .font(.system(size: symbolName == "minus" ? 7 : 6, weight: .bold))
+                    .foregroundStyle(symbolColor)
+                    .opacity(isHovered ? 1 : 0)
             }
-
-            button.setFrameOrigin(
-                CGPoint(
-                    x: baseFrame.origin.x + trafficLightXOffset,
-                    y: baseFrame.origin.y + yOffset
-                )
-            )
+            .frame(width: 13, height: 13)
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
     }
 }
 

@@ -41,6 +41,7 @@ struct SidebarView: View {
 }
 
 private struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedSection: SettingsSection = .general
     private let settingsSidebarWidth: CGFloat = 188
     private let settingsSidebarCornerRadius: CGFloat = 12
@@ -59,8 +60,28 @@ private struct SettingsView: View {
 
     private var settingsSidebar: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Color.clear
-                .frame(height: settingsSidebarTitlebarHeight)
+            HStack(spacing: 8) {
+                Button {
+                    dismiss()
+                } label: {
+                    Circle()
+                        .fill(Color(red: 1.0, green: 0.31, blue: 0.27))
+                        .frame(width: 13, height: 13)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close Settings")
+
+                Circle()
+                    .fill(Color.gray.opacity(0.35))
+                    .frame(width: 13, height: 13)
+
+                Circle()
+                    .fill(Color.gray.opacity(0.35))
+                    .frame(width: 13, height: 13)
+            }
+            .padding(.top, 13)
+            .padding(.leading, 16)
+            .frame(height: settingsSidebarTitlebarHeight, alignment: .topLeading)
 
             ForEach(SettingsSection.allCases) { section in
                 Button {
@@ -86,13 +107,13 @@ private struct SettingsView: View {
         }
         .frame(width: settingsSidebarWidth)
         .frame(maxHeight: .infinity)
-        .background(.bar, in: RoundedRectangle(cornerRadius: settingsSidebarCornerRadius, style: .continuous))
+        .background(Color(red: 0.976, green: 0.976, blue: 0.976), in: RoundedRectangle(cornerRadius: settingsSidebarCornerRadius, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: settingsSidebarCornerRadius, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
         .overlay {
             RoundedRectangle(cornerRadius: settingsSidebarCornerRadius, style: .continuous)
-                .stroke(.white.opacity(0.55), lineWidth: 1)
+                .stroke(Color.white, lineWidth: 2)
         }
         .padding(.leading, settingsSidebarInset)
         .padding(.top, settingsSidebarInset)
