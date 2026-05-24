@@ -1,39 +1,50 @@
 # Nskog Notes Plus
 
-A lightweight native macOS notes app foundation inspired by Apple Notes.
+  A native macOS notes app that extends Apple Notes while preserving its look and feel.
 
-The current goal is a clean starting point: fast to open in Xcode, easy to understand, and structured so features can be added incrementally without introducing unnecessary complexity early.
+---
 
-## Current Scope
+### Craft & Scope
 
-- Swift and SwiftUI macOS-only app
-- Three-column Notes-style shell:
-  - Sidebar
-  - Notes list
-  - Editor/detail area
-- Simple local in-memory note and folder models
-- Clear separation between app entry, models, views, view models, and services
-- Minimal Xcode project with no third-party dependencies
+Built with **Swift** and **SwiftUI** — a three-column Notes-style shell (sidebar, notes list, editor area) with clean separation across models, views, view models, and services. Local in-memory data. Zero third-party dependencies.
 
-## Intentionally Not Implemented Yet
+---
 
-- Note creation, editing, deletion, or search
-- Persistence beyond local placeholder seed data
-- Sync, accounts, login, networking, or cloud storage
-- Rich text editing
-- Markdown rendering
-- Tags, settings, import/export, or attachments
-- AI features
+### What's Here
 
-## Suggested Next Steps
+-  macOS-native three-column layout
+-  In-memory note & folder models with seed data
+-  Clean MVVM-style architecture — app entry, models, views, view models, services
+-  Minimal Xcode project, no external dependencies
 
-1. Add real local persistence using a small file-backed store.
-2. Add note creation and selection behavior.
-3. Add basic plain-text editing with save-on-change.
-4. Add search across note titles and body text.
-5. Add folder filtering and folder management.
-6. Introduce focused tests around models and storage once persistence exists.
+### What's Ahead
 
-## Running
+| Area | Status |
+|---|---|
+| Note creation, editing, deletion & search |   Not yet |
+| Local file-backed persistence |   Not yet |
+| Sync, accounts, networking, cloud |   Not yet |
+| Rich text & Markdown rendering |   Not yet |
+| Tags, settings, import/export |   Not yet |
+| AI features |   Not yet |
 
-Open `NskogNotesPlus.xcodeproj` in Xcode, select the `NskogNotesPlus` scheme, and run the app on macOS.
+---
+
+### Roadmap
+
+1.  File-backed persistence
+2.  Note creation & selection
+3.  Plain-text editing with auto-save
+4.  Search across titles & body text
+5.  Folder filtering & management
+6.  Focused tests around models & storage
+
+---
+
+### Running
+
+Open **`NskogNotesPlus.xcodeproj`** in Xcode, select the `NskogNotesPlus` scheme, and run on macOS.
+
+---
+
+*Extending Apple Notes, one note at a time.*
