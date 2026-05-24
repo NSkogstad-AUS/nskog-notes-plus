@@ -10,8 +10,6 @@ struct NotesListView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 34) {
-                header
-
                 if let pinnedNote {
                     NoteSectionView(
                         title: "Pinned",
@@ -43,22 +41,11 @@ struct NotesListView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 14)
+            .padding(.top, 68)
             .padding(.bottom, 40)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Color(nsColor: .windowBackgroundColor))
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text("Notes")
-                .font(.system(size: 14, weight: .semibold))
-
-            Text("\(viewModel.filteredNotes.count) notes")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-        }
     }
 
     private var pinnedNote: Note? {

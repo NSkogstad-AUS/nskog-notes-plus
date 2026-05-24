@@ -55,6 +55,22 @@ struct MainWindowView: View {
                     )
                 )
 
+            notesHeader
+                .modifier(
+                    NotesHeaderPosition(
+                        progress: sidebarProgress,
+                        sidebarColumnWidth: sidebarColumnWidth,
+                        sidebarVisualRightEdge: sidebarInset + sidebarWidth,
+                        toggleButtonSize: toggleButtonSize,
+                        toggleInset: toggleButtonInset,
+                        dockedToggleX: sidebarInset + sidebarWidth - toggleButtonSize - toggleButtonInset,
+                        titlebarToggleX: titlebarToggleX,
+                        yOffset: sidebarToggleTopInset + 2,
+                        collapsedGap: 18,
+                        expandedGap: 28
+                    )
+                )
+
             titlebarActions
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, sidebarToggleTopInset)
@@ -125,6 +141,17 @@ struct MainWindowView: View {
     private var notesOverview: some View {
         NotesListView(viewModel: appViewModel.notesViewModel)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private var notesHeader: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text("Notes")
+                .font(.system(size: 14, weight: .semibold))
+
+            Text("\(appViewModel.notesViewModel.filteredNotes.count) notes")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+        }
     }
 
     private var sidebarToggleButton: some View {
@@ -379,5 +406,35 @@ private struct SidebarTogglePosition: AnimatableModifier {
 
     private var yOffset: CGFloat {
         dockedY
+    }
+}
+
+private struct NotesHeaderPosition: AnimatableModifier {
+    var progress: CGFloat
+    let sidebarColumnWidth: CGFloat
+    let sidebarVisualRightEdge: CGFloat
+    let toggleButtonSize: CGFloat
+    let toggleInset: CGFloat
+    let dockedToggleX: CGFloat
+    let titlebarToggleX: CGFloat
+    let yOffset: CGFloat
+    let collapsedGap: CGFloat
+    let expandedGap: CGFloat
+
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        content.offset(x: xOffset, y: yOffset)
+    }
+
+    private var xOffset: CGFloat {
+        let visibleRightEdge = sidebarVisualRightEdge - sidebarColumnWidth * (1 - progress)
+        let edgeAttachedToggleX = visibleRightEdge - toggleButtonSize - toggleInset
+        let toggleX = min(dockedToggleX, max(titlebarToggleX, edgeAttachedToggleX))
+        let gap = collapsedGap + (expandedGap - collapsedGap) * progress
+        return toggleX + toggleButtonSize + gap
     }
 }
