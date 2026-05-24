@@ -5,7 +5,7 @@ struct NotesListView: View {
 
     var body: some View {
         List(selection: $viewModel.selectedNoteID) {
-            ForEach(viewModel.notes) { note in
+            ForEach(viewModel.filteredNotes) { note in
                 NoteRow(note: note)
                     .tag(note.id)
             }

@@ -15,6 +15,10 @@ struct MainWindowView: View {
     private let toggleButtonInset: CGFloat = 6
     private let titlebarToggleX: CGFloat = 96
     private let titlebarControlTopInset: CGFloat = 7
+    private let titlebarTrailingInset: CGFloat = 12
+    private let titlebarActionHeight: CGFloat = 36
+    private let titlebarActionWidth: CGFloat = 70
+    private let titlebarSearchWidth: CGFloat = 328
     private let sidebarAnimationDuration: TimeInterval = 0.25
 
     var body: some View {
@@ -38,6 +42,11 @@ struct MainWindowView: View {
                         edgeInset: toggleButtonInset
                     )
                 )
+
+            titlebarActions
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.top, sidebarToggleTopInset)
+                .padding(.trailing, titlebarTrailingInset)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Color(nsColor: .windowBackgroundColor))
@@ -72,6 +81,10 @@ struct MainWindowView: View {
 
     private var toggleButtonPrimaryShadowY: CGFloat {
         isSidebarVisible ? 2 : 4
+    }
+
+    private var sidebarToggleTopInset: CGFloat {
+        sidebarTopInset + toggleButtonInset
     }
 
     private var sidebarPanel: some View {
@@ -118,6 +131,71 @@ struct MainWindowView: View {
         }
         .help("Toggle Sidebar")
         .accessibilityLabel("Toggle Sidebar")
+    }
+
+    private var titlebarActions: some View {
+        HStack(spacing: 34) {
+            HStack(spacing: 0) {
+                Menu {
+                    Button("New Note") {
+                        appViewModel.notesViewModel.createNote()
+                    }
+
+                    Divider()
+
+                    Button("Clear Search") {
+                        appViewModel.notesViewModel.searchText = ""
+                    }
+                    .disabled(appViewModel.notesViewModel.searchText.isEmpty)
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 15, weight: .semibold))
+                        .frame(width: titlebarActionWidth / 2, height: titlebarActionHeight)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .buttonStyle(.plain)
+                .help("More")
+                .accessibilityLabel("More")
+
+                Button {
+                    appViewModel.notesViewModel.createNote()
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                        .font(.system(size: 16, weight: .regular))
+                        .frame(width: titlebarActionWidth / 2, height: titlebarActionHeight)
+                }
+                .buttonStyle(.plain)
+                .help("New Note")
+                .accessibilityLabel("New Note")
+            }
+            .frame(width: titlebarActionWidth, height: titlebarActionHeight)
+            .foregroundStyle(.primary)
+            .background {
+                Capsule()
+                    .fill(Color(nsColor: .controlBackgroundColor).opacity(0.95))
+                    .shadow(color: .black.opacity(0.10), radius: 14, x: 0, y: 4)
+                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
+            }
+
+            HStack(spacing: 7) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.tertiary)
+
+                TextField("Search", text: $appViewModel.notesViewModel.searchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 14, weight: .regular))
+            }
+            .padding(.horizontal, 14)
+            .frame(width: titlebarSearchWidth, height: titlebarActionHeight)
+            .background {
+                Capsule()
+                    .fill(Color(nsColor: .controlBackgroundColor).opacity(0.95))
+                    .shadow(color: .black.opacity(0.10), radius: 14, x: 0, y: 4)
+                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
+            }
+        }
     }
 
     private func toggleSidebar() {
