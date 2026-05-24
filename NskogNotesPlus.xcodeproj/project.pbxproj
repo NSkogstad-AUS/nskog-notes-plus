@@ -13,8 +13,6 @@
 		8E1A2B3C4D5E6F7000010004 /* MainWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020004 /* MainWindowView.swift */; };
 		8E1A2B3C4D5E6F7000010005 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020005 /* SidebarView.swift */; };
 		8E1A2B3C4D5E6F7000010006 /* NotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020006 /* NotesListView.swift */; };
-		8E1A2B3C4D5E6F7000010007 /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020007 /* EditorView.swift */; };
-		8E1A2B3C4D5E6F7000010008 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020008 /* EmptyStateView.swift */; };
 		8E1A2B3C4D5E6F7000010009 /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020009 /* AppViewModel.swift */; };
 		8E1A2B3C4D5E6F7000010010 /* NotesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020010 /* NotesViewModel.swift */; };
 		8E1A2B3C4D5E6F7000010011 /* LocalNotesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1A2B3C4D5E6F7000020011 /* LocalNotesStore.swift */; };
@@ -28,8 +26,6 @@
 		8E1A2B3C4D5E6F7000020004 /* MainWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowView.swift; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000020005 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000020006 /* NotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesListView.swift; sourceTree = "<group>"; };
-		8E1A2B3C4D5E6F7000020007 /* EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorView.swift; sourceTree = "<group>"; };
-		8E1A2B3C4D5E6F7000020008 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000020009 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000020010 /* NotesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesViewModel.swift; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000020011 /* LocalNotesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotesStore.swift; sourceTree = "<group>"; };
@@ -63,7 +59,7 @@
 		};
 		8E1A2B3C4D5E6F7000040002 /* App */ = {isa = PBXGroup; children = (8E1A2B3C4D5E6F7000020001 /* NskogNotesPlusApp.swift */); path = App; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000040003 /* Models */ = {isa = PBXGroup; children = (8E1A2B3C4D5E6F7000020002 /* Note.swift */, 8E1A2B3C4D5E6F7000020003 /* NoteFolder.swift */); path = Models; sourceTree = "<group>"; };
-		8E1A2B3C4D5E6F7000040004 /* Views */ = {isa = PBXGroup; children = (8E1A2B3C4D5E6F7000020004 /* MainWindowView.swift */, 8E1A2B3C4D5E6F7000020005 /* SidebarView.swift */, 8E1A2B3C4D5E6F7000020006 /* NotesListView.swift */, 8E1A2B3C4D5E6F7000020007 /* EditorView.swift */, 8E1A2B3C4D5E6F7000020008 /* EmptyStateView.swift */); path = Views; sourceTree = "<group>"; };
+		8E1A2B3C4D5E6F7000040004 /* Views */ = {isa = PBXGroup; children = (8E1A2B3C4D5E6F7000020004 /* MainWindowView.swift */, 8E1A2B3C4D5E6F7000020005 /* SidebarView.swift */, 8E1A2B3C4D5E6F7000020006 /* NotesListView.swift */); path = Views; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000040005 /* ViewModels */ = {isa = PBXGroup; children = (8E1A2B3C4D5E6F7000020009 /* AppViewModel.swift */, 8E1A2B3C4D5E6F7000020010 /* NotesViewModel.swift */); path = ViewModels; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000040006 /* Services */ = {isa = PBXGroup; children = (8E1A2B3C4D5E6F7000020011 /* LocalNotesStore.swift */); path = Services; sourceTree = "<group>"; };
 		8E1A2B3C4D5E6F7000040007 /* Resources */ = {isa = PBXGroup; children = (8E1A2B3C4D5E6F7000020012 /* Assets.xcassets */); path = Resources; sourceTree = "<group>"; };
@@ -143,8 +139,6 @@
 				8E1A2B3C4D5E6F7000010004 /* MainWindowView.swift in Sources */,
 				8E1A2B3C4D5E6F7000010005 /* SidebarView.swift in Sources */,
 				8E1A2B3C4D5E6F7000010006 /* NotesListView.swift in Sources */,
-				8E1A2B3C4D5E6F7000010007 /* EditorView.swift in Sources */,
-				8E1A2B3C4D5E6F7000010008 /* EmptyStateView.swift in Sources */,
 				8E1A2B3C4D5E6F7000010009 /* AppViewModel.swift in Sources */,
 				8E1A2B3C4D5E6F7000010010 /* NotesViewModel.swift in Sources */,
 				8E1A2B3C4D5E6F7000010011 /* LocalNotesStore.swift in Sources */,

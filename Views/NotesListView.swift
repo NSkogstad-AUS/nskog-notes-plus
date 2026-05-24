@@ -67,17 +67,20 @@ struct NotesListView: View {
             .sorted { $0.sortDate > $1.sortDate }
     }
 
-    private func sectionTitle(for date: Date) -> String {
-        let calendar = Calendar.current
+    private static let calendar = Calendar.current
+    private static let monthFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMMM"
+        return f
+    }()
 
-        if let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date()),
+    private func sectionTitle(for date: Date) -> String {
+        if let thirtyDaysAgo = Self.calendar.date(byAdding: .day, value: -30, to: Date()),
            date >= thirtyDaysAgo {
             return "Previous 30 Days"
         }
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM"
-        return formatter.string(from: date)
+        return Self.monthFormatter.string(from: date)
     }
 }
 

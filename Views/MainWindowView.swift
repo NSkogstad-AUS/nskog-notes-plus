@@ -24,7 +24,7 @@ struct MainWindowView: View {
     private let trafficLightGap: CGFloat = 8
     private let trafficLightLeading: CGFloat = 20
     private let trafficLightTop: CGFloat = 20
-    private let sidebarAnimationDuration: TimeInterval = 0.25
+    private let sidebarAnimation: Animation = .linear(duration: 0.25)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -85,10 +85,6 @@ struct MainWindowView: View {
 
     private var sidebarColumnWidth: CGFloat {
         sidebarInset + sidebarWidth + sidebarGap
-    }
-
-    private var sidebarAnimation: Animation {
-        .linear(duration: sidebarAnimationDuration)
     }
 
     private var toggleButtonCornerRadius: CGFloat {

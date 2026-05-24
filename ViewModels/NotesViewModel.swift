@@ -69,10 +69,8 @@ final class NotesViewModel: ObservableObject {
     }
 
     func share(_ note: Note) {
-        #if os(macOS)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString("\(note.title)\n\n\(note.body)", forType: .string)
-        #endif
     }
 }
