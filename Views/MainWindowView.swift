@@ -148,9 +148,7 @@ struct MainWindowView: View {
             Text("Notes")
                 .font(.system(size: 14, weight: .semibold))
 
-            Text("\(appViewModel.notesViewModel.filteredNotes.count) notes")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+            NotesCountText(notesViewModel: appViewModel.notesViewModel)
         }
     }
 
@@ -406,6 +404,16 @@ private struct SidebarTogglePosition: AnimatableModifier {
 
     private var yOffset: CGFloat {
         dockedY
+    }
+}
+
+private struct NotesCountText: View {
+    @ObservedObject var notesViewModel: NotesViewModel
+
+    var body: some View {
+        Text("\(notesViewModel.filteredNotes.count) notes")
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
     }
 }
 

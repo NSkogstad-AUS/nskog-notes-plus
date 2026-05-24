@@ -2,27 +2,32 @@ import AppKit
 import Foundation
 
 final class NotesViewModel: ObservableObject {
-    @Published private(set) var notes: [Note]
+    @Published private(set) var notes: [Note] {
+        didSet { updateFilteredNotes() }
+    }
     @Published var selectedNoteID: Note.ID?
-    @Published var searchText = ""
+    @Published var searchText = "" {
+        didSet { updateFilteredNotes() }
+    }
+    @Published private(set) var filteredNotes: [Note] = []
 
     init(notes: [Note]) {
         self.notes = notes
         selectedNoteID = notes.first?.id
+        updateFilteredNotes()
     }
 
     var selectedNote: Note? {
         notes.first { $0.id == selectedNoteID }
     }
 
-    var filteredNotes: [Note] {
+    private func updateFilteredNotes() {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-
         guard !query.isEmpty else {
-            return notes
+            filteredNotes = notes
+            return
         }
-
-        return notes.filter { note in
+        filteredNotes = notes.filter { note in
             note.title.localizedCaseInsensitiveContains(query)
                 || note.body.localizedCaseInsensitiveContains(query)
         }

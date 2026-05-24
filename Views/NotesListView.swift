@@ -7,22 +7,25 @@ struct NotesListView: View {
     private let cardHeight: CGFloat = 136
     private let gridSpacing: CGFloat = 24
 
+    @State private var noteSections: [NoteDateSection] = []
+
     var body: some View {
+        let notes = viewModel.filteredNotes
+        let pinned = notes.first
+
         ScrollView {
             VStack(alignment: .leading, spacing: 34) {
-                if let pinnedNote {
+                if let pinned {
                     NoteSectionView(
                         title: "Pinned",
-                        notes: [pinnedNote],
+                        notes: [pinned],
                         cardWidth: cardWidth,
                         cardHeight: cardHeight,
                         gridSpacing: gridSpacing,
                         selectedNoteID: $viewModel.selectedNoteID,
-                        createNote: viewModel.createNote,
-                        duplicateNote: viewModel.duplicate,
-                        shareNote: viewModel.share,
-                        deleteNote: viewModel.delete
+                        viewModel: viewModel
                     )
+                    .equatable()
                 }
 
                 ForEach(noteSections) { section in
@@ -33,11 +36,9 @@ struct NotesListView: View {
                         cardHeight: cardHeight,
                         gridSpacing: gridSpacing,
                         selectedNoteID: $viewModel.selectedNoteID,
-                        createNote: viewModel.createNote,
-                        duplicateNote: viewModel.duplicate,
-                        shareNote: viewModel.share,
-                        deleteNote: viewModel.delete
+                        viewModel: viewModel
                     )
+                    .equatable()
                 }
             }
             .padding(.horizontal, 16)
@@ -46,18 +47,14 @@ struct NotesListView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .onChange(of: viewModel.filteredNotes) { _, newNotes in
+            noteSections = buildSections(from: newNotes)
+        }
     }
 
-    private var pinnedNote: Note? {
-        viewModel.filteredNotes.first
-    }
-
-    private var unpinnedNotes: [Note] {
-        Array(viewModel.filteredNotes.dropFirst())
-    }
-
-    private var noteSections: [NoteDateSection] {
-        let groupedNotes = Dictionary(grouping: unpinnedNotes) { sectionTitle(for: $0.lastEdited) }
+    private func buildSections(from notes: [Note]) -> [NoteDateSection] {
+        let unpinned = notes.dropFirst()
+        let groupedNotes = Dictionary(grouping: unpinned) { sectionTitle(for: $0.lastEdited) }
 
         return groupedNotes
             .map { title, notes in
@@ -84,17 +81,14 @@ struct NotesListView: View {
     }
 }
 
-private struct NoteSectionView: View {
+private struct NoteSectionView: View, Equatable {
     let title: String
     let notes: [Note]
     let cardWidth: CGFloat
     let cardHeight: CGFloat
     let gridSpacing: CGFloat
     @Binding var selectedNoteID: Note.ID?
-    let createNote: () -> Void
-    let duplicateNote: (Note) -> Void
-    let shareNote: (Note) -> Void
-    let deleteNote: (Note) -> Void
+    let viewModel: NotesViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -108,12 +102,10 @@ private struct NoteSectionView: View {
                         cardWidth: cardWidth,
                         cardHeight: cardHeight,
                         isSelected: selectedNoteID == note.id,
-                        createNote: createNote,
-                        duplicateNote: { duplicateNote(note) },
-                        shareNote: { shareNote(note) },
-                        deleteNote: { deleteNote(note) },
-                        action: { selectedNoteID = note.id }
+                        selectedNoteID: $selectedNoteID,
+                        viewModel: viewModel
                     )
+                    .equatable()
                 }
             }
         }
@@ -122,21 +114,27 @@ private struct NoteSectionView: View {
     private var columns: [GridItem] {
         [GridItem(.adaptive(minimum: cardWidth, maximum: cardWidth), spacing: gridSpacing, alignment: .top)]
     }
+
+    static func == (lhs: NoteSectionView, rhs: NoteSectionView) -> Bool {
+        lhs.title == rhs.title
+            && lhs.notes == rhs.notes
+            && lhs.cardWidth == rhs.cardWidth
+            && lhs.cardHeight == rhs.cardHeight
+            && lhs.gridSpacing == rhs.gridSpacing
+            && lhs.selectedNoteID == rhs.selectedNoteID
+    }
 }
 
-private struct NotePreviewItem: View {
+private struct NotePreviewItem: View, Equatable {
     let note: Note
     let cardWidth: CGFloat
     let cardHeight: CGFloat
     let isSelected: Bool
-    let createNote: () -> Void
-    let duplicateNote: () -> Void
-    let shareNote: () -> Void
-    let deleteNote: () -> Void
-    let action: () -> Void
+    @Binding var selectedNoteID: Note.ID?
+    let viewModel: NotesViewModel
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { selectedNoteID = note.id }) {
             VStack(spacing: 10) {
                 NotePreviewCard(note: note)
                     .frame(width: cardWidth, height: cardHeight)
@@ -161,7 +159,7 @@ private struct NotePreviewItem: View {
         .buttonStyle(.plain)
         .contextMenu {
             Button {
-                action()
+                selectedNoteID = note.id
             } label: {
                 Label("Open Note in New Window", systemImage: "rectangle.on.rectangle")
             }
@@ -178,17 +176,17 @@ private struct NotePreviewItem: View {
 
             Divider()
 
-            Button(action: createNote) {
+            Button(action: viewModel.createNote) {
                 Label("New Note", systemImage: "square.and.pencil")
             }
 
-            Button(action: duplicateNote) {
+            Button(action: { viewModel.duplicate(note) }) {
                 Label("Duplicate Note", systemImage: "plus.square.on.square")
             }
 
             Divider()
 
-            Button(action: shareNote) {
+            Button(action: { viewModel.share(note) }) {
                 Label("Share Note", systemImage: "square.and.arrow.up")
             }
 
@@ -203,10 +201,18 @@ private struct NotePreviewItem: View {
 
             Divider()
 
-            Button(role: .destructive, action: deleteNote) {
+            Button(role: .destructive, action: { viewModel.delete(note) }) {
                 Label("Delete", systemImage: "trash")
             }
         }
+    }
+
+    static func == (lhs: NotePreviewItem, rhs: NotePreviewItem) -> Bool {
+        lhs.note == rhs.note
+            && lhs.cardWidth == rhs.cardWidth
+            && lhs.cardHeight == rhs.cardHeight
+            && lhs.isSelected == rhs.isSelected
+            && lhs.selectedNoteID == rhs.selectedNoteID
     }
 }
 
