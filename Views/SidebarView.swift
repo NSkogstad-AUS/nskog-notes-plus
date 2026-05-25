@@ -282,9 +282,9 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
 
     var isEnabled: Bool {
         switch self {
-        case .general, .appearance:
+        case .general, .appearance, .extensions:
             return true
-        case .shortcuts, .storage, .extensions:
+        case .shortcuts, .storage:
             return false
         }
     }
