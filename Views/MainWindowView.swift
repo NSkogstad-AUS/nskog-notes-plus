@@ -3,6 +3,7 @@ import SwiftUI
 
 struct MainWindowView: View {
     @EnvironmentObject private var appViewModel: AppViewModel
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isSidebarVisible = true
     @State private var sidebarProgress: CGFloat = 1
     @State private var areTrafficLightsHovered = false
@@ -111,6 +112,14 @@ struct MainWindowView: View {
         sidebarTopInset + toggleButtonInset
     }
 
+    private var sidebarPanelFillColor: Color {
+        Color(nsColor: colorScheme == .dark ? .controlBackgroundColor : .windowBackgroundColor)
+    }
+
+    private var sidebarPanelStrokeColor: Color {
+        Color(nsColor: .separatorColor).opacity(colorScheme == .dark ? 0.38 : 0.14)
+    }
+
     private var sidebarPanel: some View {
         VStack(spacing: 0) {
             Color.clear
@@ -118,20 +127,20 @@ struct MainWindowView: View {
 
             SidebarView(folders: appViewModel.folders)
         }
-            .frame(width: sidebarWidth)
-            .frame(maxHeight: .infinity)
-            .background(Color(red: 0.976, green: 0.976, blue: 0.976), in: RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
-            .clipShape(RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
-            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
-            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
-            .overlay {
-                RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous)
-                    .stroke(Color.white, lineWidth: 2)
-            }
-            .padding(.leading, sidebarInset)
-            .padding(.top, sidebarTopInset)
-            .padding(.bottom, sidebarInset)
-            .padding(.trailing, sidebarGap)
+        .frame(width: sidebarWidth)
+        .frame(maxHeight: .infinity)
+        .background(sidebarPanelFillColor, in: RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous))
+        .shadow(color: .black.opacity(colorScheme == .dark ? 0.24 : 0.08), radius: 8, x: 0, y: 2)
+        .shadow(color: .black.opacity(colorScheme == .dark ? 0.14 : 0.05), radius: 4, x: 0, y: 1)
+        .overlay {
+            RoundedRectangle(cornerRadius: sidebarCornerRadius, style: .continuous)
+                .stroke(sidebarPanelStrokeColor, lineWidth: 1)
+        }
+        .padding(.leading, sidebarInset)
+        .padding(.top, sidebarTopInset)
+        .padding(.bottom, sidebarInset)
+        .padding(.trailing, sidebarGap)
     }
 
     private var notesOverview: some View {

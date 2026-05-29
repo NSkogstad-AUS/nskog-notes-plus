@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct NotesListView: View {
@@ -220,7 +221,16 @@ private struct NotePreviewItem: View, Equatable {
 }
 
 private struct NotePreviewCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let note: Note
+
+    private var cardFillColor: Color {
+        Color(nsColor: colorScheme == .dark ? .controlBackgroundColor : .textBackgroundColor)
+    }
+
+    private var cardStrokeColor: Color {
+        Color(nsColor: .separatorColor).opacity(colorScheme == .dark ? 0.42 : 0.16)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
@@ -238,10 +248,10 @@ private struct NotePreviewCard: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.white, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(cardFillColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(Color.black.opacity(0.12), lineWidth: 1)
+                .stroke(cardStrokeColor, lineWidth: 1)
         }
     }
 
