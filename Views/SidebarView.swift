@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct SidebarView: View {
@@ -253,7 +254,9 @@ private struct SettingsRow: View {
             Spacer()
 
             if let actionTitle = row.actionTitle {
-                Button(actionTitle) { }
+                Button(actionTitle) {
+                    row.action?()
+                }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
             } else {
@@ -345,8 +348,8 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
 
     var rows: [SettingsRowModel] {
         [
-            SettingsRowModel(title: primaryRowTitle, subtitle: primaryRowSubtitle, systemImage: systemImage, tint: tint, actionTitle: primaryActionTitle),
-            SettingsRowModel(title: secondaryRowTitle, subtitle: secondaryRowSubtitle, systemImage: "chevron.left.forwardslash.chevron.right", tint: .secondary, actionTitle: nil)
+            SettingsRowModel(title: primaryRowTitle, subtitle: primaryRowSubtitle, systemImage: systemImage, tint: tint, actionTitle: primaryActionTitle, action: primaryAction),
+            SettingsRowModel(title: secondaryRowTitle, subtitle: secondaryRowSubtitle, systemImage: "chevron.left.forwardslash.chevron.right", tint: .secondary, actionTitle: secondaryActionTitle, action: secondaryAction)
         ]
     }
 
@@ -360,7 +363,8 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
             subtitle: "Control access to app features and local note data.",
             systemImage: "lock",
             tint: .secondary,
-            actionTitle: nil
+            actionTitle: nil,
+            action: nil
         )
     }
 
@@ -390,13 +394,19 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
         }
     }
 
+    private var primaryAction: (() -> Void)? {
+        switch self {
+        case .general, .appearance, .shortcuts, .storage, .extensions: nil
+        }
+    }
+
     private var secondaryRowTitle: String {
         switch self {
         case .general: "Default Folder"
         case .appearance: "Sidebar Density"
         case .shortcuts: "Quick Actions"
         case .storage: "Backups"
-        case .extensions: "Extension Permissions"
+        case .extensions: "Example Extension"
         }
     }
 
@@ -406,9 +416,59 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
         case .appearance: "Adjust spacing and row height in the sidebar."
         case .shortcuts: "Customize quick note commands."
         case .storage: "Configure automatic local backup behavior."
-        case .extensions: "Control extension access to app features."
+        case .extensions: "Download a sample manifest for future extension support."
         }
     }
+
+    private var secondaryActionTitle: String? {
+        switch self {
+        case .extensions: "Download"
+        case .general, .appearance, .shortcuts, .storage: nil
+        }
+    }
+
+    private var secondaryAction: (() -> Void)? {
+        switch self {
+        case .extensions: downloadExampleExtension
+        case .general, .appearance, .shortcuts, .storage: nil
+        }
+    }
+
+    private func downloadExampleExtension() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = "NotesPlusExampleExtension.json"
+
+        guard panel.runModal() == .OK, let url = panel.url else {
+            return
+        }
+
+        do {
+            try Self.exampleExtensionManifest.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            NSSound.beep()
+        }
+    }
+
+    private static let exampleExtensionManifest = """
+    {
+      "name": "Notes Plus Example Extension",
+      "identifier": "com.example.notes-plus.extension",
+      "version": "1.0.0",
+      "description": "A sample extension manifest for Notes Plus.",
+      "permissions": [
+        "readNotes",
+        "createNotes"
+      ],
+      "actions": [
+        {
+          "title": "Create Daily Note",
+          "command": "notes.createDaily"
+        }
+      ]
+    }
+    """
 }
 
 private struct SettingsRowModel: Identifiable {
@@ -418,4 +478,5 @@ private struct SettingsRowModel: Identifiable {
     let systemImage: String
     let tint: Color
     let actionTitle: String?
+    let action: (() -> Void)?
 }
