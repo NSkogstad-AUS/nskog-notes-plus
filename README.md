@@ -8,6 +8,8 @@
 
 Built with **Swift** and **SwiftUI** — a three-column Notes-style shell (sidebar, notes list, editor area) with clean separation across models, views, view models, and services. Local in-memory data. Zero third-party dependencies.
 
+basic commit
+
 ---
 
 ### What's Here
