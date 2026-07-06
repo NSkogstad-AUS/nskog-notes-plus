@@ -9,12 +9,41 @@ struct NotesListView: View {
     private let gridSpacing: CGFloat = 24
 
     @State private var noteSections: [NoteDateSection] = []
+    @State private var openedNoteID: Note.ID?
 
     var body: some View {
+        ZStack {
+            if let openedNote {
+                NoteEditorView(note: openedNote, viewModel: viewModel) {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.88)) {
+                        openedNoteID = nil
+                    }
+                }
+                .transition(.scale(scale: 0.96).combined(with: .opacity))
+            } else {
+                notesGrid
+                    .transition(.scale(scale: 1.02).combined(with: .opacity))
+            }
+        }
+        .background(Color(nsColor: .windowBackgroundColor))
+        .onAppear {
+            noteSections = buildSections(from: viewModel.filteredNotes)
+        }
+        .onChange(of: viewModel.filteredNotes) { _, newNotes in
+            noteSections = buildSections(from: newNotes)
+        }
+    }
+
+    private var openedNote: Note? {
+        guard let openedNoteID else { return nil }
+        return viewModel.notes.first { $0.id == openedNoteID }
+    }
+
+    private var notesGrid: some View {
         let notes = viewModel.filteredNotes
         let pinned = notes.first
 
-        ScrollView {
+        return ScrollView {
             VStack(alignment: .leading, spacing: 34) {
                 if let pinned {
                     NoteSectionView(
@@ -24,7 +53,8 @@ struct NotesListView: View {
                         cardHeight: cardHeight,
                         gridSpacing: gridSpacing,
                         selectedNoteID: $viewModel.selectedNoteID,
-                        viewModel: viewModel
+                        viewModel: viewModel,
+                        openNote: openNote
                     )
                     .equatable()
                 }
@@ -37,7 +67,8 @@ struct NotesListView: View {
                         cardHeight: cardHeight,
                         gridSpacing: gridSpacing,
                         selectedNoteID: $viewModel.selectedNoteID,
-                        viewModel: viewModel
+                        viewModel: viewModel,
+                        openNote: openNote
                     )
                     .equatable()
                 }
@@ -46,10 +77,6 @@ struct NotesListView: View {
             .padding(.top, 68)
             .padding(.bottom, 40)
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .background(Color(nsColor: .windowBackgroundColor))
-        .onChange(of: viewModel.filteredNotes) { _, newNotes in
-            noteSections = buildSections(from: newNotes)
         }
     }
 
@@ -93,6 +120,7 @@ private struct NoteSectionView: View, Equatable {
     let gridSpacing: CGFloat
     @Binding var selectedNoteID: Note.ID?
     let viewModel: NotesViewModel
+    let openNote: (Note) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -107,7 +135,8 @@ private struct NoteSectionView: View, Equatable {
                         cardHeight: cardHeight,
                         isSelected: selectedNoteID == note.id,
                         selectedNoteID: $selectedNoteID,
-                        viewModel: viewModel
+                        viewModel: viewModel,
+                        openNote: openNote
                     )
                     .equatable()
                 }
@@ -257,6 +286,100 @@ private struct NotePreviewCard: View {
 
     private var previewText: String {
         note.body.isEmpty ? "Start writing..." : note.body
+    }
+}
+
+private struct NoteEditorView: View {
+    let note: Note
+    @ObservedObject var viewModel: NotesViewModel
+    @State private var title: String
+    @State private var noteBody: String
+    @FocusState private var focusedField: Field?
+
+    private enum Field {
+        case title
+        case body
+    }
+
+    init(note: Note, viewModel: NotesViewModel) {
+        self.note = note
+        self.viewModel = viewModel
+        _title = State(initialValue: note.title)
+        _noteBody = State(initialValue: note.body)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Markdown")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text(note.lastEdited, format: .dateTime.day().month().year().hour().minute())
+                    .font(.system(size: 12))
+                    .foregroundStyle(.tertiary)
+            }
+
+            TextField("Title", text: $title)
+                .textFieldStyle(.plain)
+                .font(.system(size: 22, weight: .semibold))
+                .focused($focusedField, equals: .title)
+
+            Divider()
+
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $noteBody)
+                    .font(.system(size: 14, design: .monospaced))
+                    .scrollContentBackground(.hidden)
+                    .focused($focusedField, equals: .body)
+
+                if noteBody.isEmpty {
+                    Text("Write Markdown here...")
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 8)
+                        .padding(.leading, 5)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .padding(.horizontal, 22)
+        .padding(.top, 68)
+        .padding(.bottom, 24)
+        .background(Color(nsColor: .textBackgroundColor).opacity(0.45))
+        .onAppear {
+            focusedField = .body
+        }
+        .onChange(of: note.id) { _, _ in
+            title = note.title
+            noteBody = note.body
+            focusedField = .body
+        }
+        .onChange(of: title) { _, newTitle in
+            viewModel.updateSelectedNote(title: newTitle, body: noteBody)
+        }
+        .onChange(of: noteBody) { _, newBody in
+            viewModel.updateSelectedNote(title: title, body: newBody)
+        }
+    }
+}
+
+private struct EmptyNoteEditorView: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "note.text")
+                .font(.system(size: 28))
+                .foregroundStyle(.tertiary)
+
+            Text("Select or create a note")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .textBackgroundColor).opacity(0.35))
     }
 }
 

@@ -37,13 +37,30 @@ final class NotesViewModel: ObservableObject {
         let note = Note(
             id: UUID(),
             title: "Untitled Note",
-            body: "",
+            body: "# Untitled Note\n\n",
             lastEdited: Date(),
             folderID: nil
         )
 
         notes.insert(note, at: 0)
         selectedNoteID = note.id
+    }
+
+    func updateSelectedNote(title: String, body: String) {
+        guard let selectedNoteID else { return }
+        updateNote(id: selectedNoteID, title: title, body: body)
+    }
+
+    func updateNote(id: Note.ID, title: String, body: String) {
+        guard let index = notes.firstIndex(where: { $0.id == id }) else { return }
+        let currentNote = notes[index]
+        notes[index] = Note(
+            id: currentNote.id,
+            title: title,
+            body: body,
+            lastEdited: Date(),
+            folderID: currentNote.folderID
+        )
     }
 
     func duplicate(_ note: Note) {
