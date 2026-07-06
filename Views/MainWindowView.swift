@@ -15,7 +15,7 @@ struct MainWindowView: View {
     private let sidebarTitlebarHeight: CGFloat = 44
     private let toggleButtonSize: CGFloat = 38
     private let toggleButtonInset: CGFloat = 6
-    private let titlebarToggleX: CGFloat = 96
+    private let titlebarToggleX: CGFloat = 88
     private let titlebarControlTopInset: CGFloat = 7
     private let titlebarTrailingInset: CGFloat = 12
     private let titlebarActionHeight: CGFloat = 36
@@ -25,7 +25,8 @@ struct MainWindowView: View {
     private let trafficLightGap: CGFloat = 8
     private let trafficLightLeading: CGFloat = 20
     private let trafficLightTop: CGFloat = 20
-    private let sidebarAnimation: Animation = .linear(duration: 0.25)
+    private let sidebarOpenAnimation: Animation = .linear(duration: 0.2)
+    private let sidebarCloseAnimation: Animation = .linear(duration: 0.16)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -295,7 +296,7 @@ struct MainWindowView: View {
     private func openSidebar() {
         isSidebarVisible = true
 
-        withAnimation(sidebarAnimation) {
+        withAnimation(sidebarOpenAnimation) {
             sidebarProgress = 1
         }
     }
@@ -303,7 +304,7 @@ struct MainWindowView: View {
     private func closeSidebar() {
         isSidebarVisible = false
 
-        withAnimation(sidebarAnimation) {
+        withAnimation(sidebarCloseAnimation) {
             sidebarProgress = 0
         }
     }
