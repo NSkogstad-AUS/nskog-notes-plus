@@ -32,6 +32,12 @@ struct NotesListView: View {
         .onChange(of: viewModel.filteredNotes) { _, newNotes in
             noteSections = buildSections(from: newNotes)
         }
+        .onChange(of: viewModel.lastCreatedNoteID) { _, noteID in
+            guard let noteID else { return }
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.88)) {
+                openedNoteID = noteID
+            }
+        }
     }
 
     private var openedNote: Note? {
@@ -77,6 +83,13 @@ struct NotesListView: View {
             .padding(.top, 68)
             .padding(.bottom, 40)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func openNote(_ note: Note) {
+        viewModel.selectedNoteID = note.id
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.88)) {
+            openedNoteID = note.id
         }
     }
 
@@ -165,6 +178,7 @@ private struct NotePreviewItem: View, Equatable {
     let isSelected: Bool
     @Binding var selectedNoteID: Note.ID?
     let viewModel: NotesViewModel
+    let openNote: (Note) -> Void
 
     var body: some View {
         Button(action: { selectedNoteID = note.id }) {
@@ -190,11 +204,16 @@ private struct NotePreviewItem: View, Equatable {
             }
         }
         .buttonStyle(.plain)
+        .simultaneousGesture(
+            TapGesture(count: 2).onEnded {
+                openNote(note)
+            }
+        )
         .contextMenu {
             Button {
-                selectedNoteID = note.id
+                openNote(note)
             } label: {
-                Label("Open Note in New Window", systemImage: "rectangle.on.rectangle")
+                Label("Open Note", systemImage: "doc.text")
             }
 
             Divider()
@@ -292,6 +311,7 @@ private struct NotePreviewCard: View {
 private struct NoteEditorView: View {
     let note: Note
     @ObservedObject var viewModel: NotesViewModel
+    let onClose: () -> Void
     @State private var title: String
     @State private var noteBody: String
     @FocusState private var focusedField: Field?
@@ -301,54 +321,69 @@ private struct NoteEditorView: View {
         case body
     }
 
-    init(note: Note, viewModel: NotesViewModel) {
+    init(note: Note, viewModel: NotesViewModel, onClose: @escaping () -> Void) {
         self.note = note
         self.viewModel = viewModel
+        self.onClose = onClose
         _title = State(initialValue: note.title)
         _noteBody = State(initialValue: note.body)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("Markdown")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 14) {
+                Button(action: onClose) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 15, weight: .semibold))
+                        .frame(width: 34, height: 34)
+                }
+                .buttonStyle(.plain)
+                .background(Circle().fill(Color(nsColor: .controlBackgroundColor)))
+                .help("Back to Notes")
+                .accessibilityLabel("Back to Notes")
 
                 Spacer()
 
                 Text(note.lastEdited, format: .dateTime.day().month().year().hour().minute())
                     .font(.system(size: 12))
                     .foregroundStyle(.tertiary)
+
+                Text("Markdown")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
             }
+            .padding(.horizontal, 22)
+            .padding(.top, 14)
+            .padding(.bottom, 16)
 
-            TextField("Title", text: $title)
-                .textFieldStyle(.plain)
-                .font(.system(size: 22, weight: .semibold))
-                .focused($focusedField, equals: .title)
+            VStack(alignment: .leading, spacing: 14) {
+                TextField("Title", text: $title)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 24, weight: .semibold))
+                    .focused($focusedField, equals: .title)
 
-            Divider()
-
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $noteBody)
-                    .font(.system(size: 14, design: .monospaced))
-                    .scrollContentBackground(.hidden)
-                    .focused($focusedField, equals: .body)
-
-                if noteBody.isEmpty {
-                    Text("Write Markdown here...")
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $noteBody)
                         .font(.system(size: 14, design: .monospaced))
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
-                        .allowsHitTesting(false)
+                        .scrollContentBackground(.hidden)
+                        .focused($focusedField, equals: .body)
+
+                    if noteBody.isEmpty {
+                        Text("Write Markdown here...")
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .allowsHitTesting(false)
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, 26)
+            .padding(.bottom, 30)
+            .frame(maxWidth: 860, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 68)
-        .padding(.bottom, 24)
         .background(Color(nsColor: .textBackgroundColor).opacity(0.45))
         .onAppear {
             focusedField = .body

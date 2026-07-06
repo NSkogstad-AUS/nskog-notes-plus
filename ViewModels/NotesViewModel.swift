@@ -10,6 +10,7 @@ final class NotesViewModel: ObservableObject {
         didSet { updateFilteredNotes() }
     }
     @Published private(set) var filteredNotes: [Note] = []
+    @Published private(set) var lastCreatedNoteID: Note.ID?
 
     init(notes: [Note]) {
         self.notes = notes
@@ -44,6 +45,7 @@ final class NotesViewModel: ObservableObject {
 
         notes.insert(note, at: 0)
         selectedNoteID = note.id
+        lastCreatedNoteID = note.id
     }
 
     func updateSelectedNote(title: String, body: String) {

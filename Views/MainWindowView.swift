@@ -150,11 +150,23 @@ struct MainWindowView: View {
     }
 
     private var notesHeader: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text("Notes")
-                .font(.system(size: 14, weight: .semibold))
+        HStack(spacing: 10) {
+            Button { } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold))
+                    .frame(width: 34, height: 34)
+            }
+            .buttonStyle(.plain)
+            .background(Circle().fill(Color(nsColor: .controlBackgroundColor)))
+            .help("Back")
+            .accessibilityLabel("Back")
 
-            NotesCountText(notesViewModel: appViewModel.notesViewModel)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Notes")
+                    .font(.system(size: 14, weight: .semibold))
+
+                NotesCountText(notesViewModel: appViewModel.notesViewModel)
+            }
         }
     }
 
